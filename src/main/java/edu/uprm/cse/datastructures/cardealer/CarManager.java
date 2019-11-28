@@ -13,13 +13,13 @@ import javax.ws.rs.core.Response;
 
 import edu.uprm.cse.datastructures.cardealer.model.Car;
 import edu.uprm.cse.datastructures.cardealer.model.CarComparator;
-import edu.uprm.cse.datastructures.cardealer.model.CarList;
+import edu.uprm.cse.datastructures.cardealer.model.CarTable;
 
 @Path("/cars")
 public class CarManager {
 
 	// call a new instance of the list
-	private static final SortedCircularDoublyLinkedList<Car> carList = CarList.getInstance(); //helper class instance
+	private static final SortedCircularDoublyLinkedList<Car> carList = CarTable.getInstance(); //helper class instance
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
