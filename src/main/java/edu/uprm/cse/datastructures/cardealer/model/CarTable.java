@@ -16,14 +16,14 @@ public class CarTable {
 		carList.clear(); // clears the elements on the list carList
 	}
 
-//	public static HashTableOA<K, V> carTable = new HashTableOA<>(); // K = CarID, V = CarRecord
+//	public static HashTableOA<Car, Car> carTable = new HashTableOA<>();
 //	
-//	public static HashTableOA<K, V> getInstance() {
+//	public static HashTableOA<Car, Car> getInstance() {
 //		return carTable; // return a new instance of the HashTable carTable
 //	}
 //	
 //	public static void resetCars() {
-//		carTable.clear(); // clears the elements on the list carTable
+//		carTable = new HashTableOA<>(); // clears the elements on the HashTable carTable
 //	}
 	
 }

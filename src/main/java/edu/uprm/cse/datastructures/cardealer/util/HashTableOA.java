@@ -46,7 +46,7 @@ public class HashTableOA<K, V> implements Map<K, V> {
 		return key.hashCode() % this.buckets.length;
 	}
 	
-	private int reHash(K key) {
+	private int reHash(K key) { // extremely WIP
 		int p = 11;
 		int hash1 = key.hashCode() % this.buckets.length; // first hash function
 		int hash2 = p - (key.hashCode() % p); // second hash function
@@ -98,16 +98,20 @@ public class HashTableOA<K, V> implements Map<K, V> {
 		}
 	}
 	
-	public HashTableOA(int numBuckets) {
-		this.currentSize  = 0;
-		this.buckets = new Object[numBuckets];
-		for (int i =0; i < numBuckets; ++i) {
+	public HashTableOA(int initialCapacity) {
+		this.currentSize = 0;
+		this.buckets = new Object[initialCapacity];
+		for (int i =0; i < initialCapacity; ++i) {
 			this.buckets[i] = new SortedCircularDoublyLinkedList<MapEntry<K,V>>(comp);
 		}
 	}
 	
 	public HashTableOA() {
 		this(DEFAULT_BUCKETS);
+	}
+	
+	private void resizing() {
+		
 	}
 
 	@Override
