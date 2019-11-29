@@ -10,6 +10,7 @@ public class HashTableOA<K, V> implements Map<K, V> {
 	public static class MapEntry<K, V> {
 		private K key;
 		private V value;
+		private HashState state;
 		public K getKey() {
 			return key;
 		}
@@ -22,10 +23,17 @@ public class HashTableOA<K, V> implements Map<K, V> {
 		public void setValue(V value) {
 			this.value = value;
 		}
-		public MapEntry(K key, V value) {
+		public HashState getState() {
+			return state;
+		}
+		public void setState(HashState state) {
+			this.state = state;
+		}
+		public MapEntry(K key, V value, HashState state) {
 			super();
 			this.key = key;
 			this.value = value;
+			this.state = state;
 		}
 	}
 	
@@ -39,15 +47,55 @@ public class HashTableOA<K, V> implements Map<K, V> {
 	}
 	
 	private int reHash(K key) {
-		int singleHash = hashFunction(key);
-		int doubleHash = DEFAULT_BUCKETS - (key.hashCode() % DEFAULT_BUCKETS);
+		int p = 11;
+		int hash1 = key.hashCode() % this.buckets.length; // first hash function
+		int hash2 = p - (key.hashCode() % p); // second hash function
+		boolean containsHash1 = false;
+		boolean containsHash2 = false;
 		
-//		if (this.contains(singleHash) && this.contains(doubleHash)) {
-//			
-//		}
+		SortedList<MapEntry<K,V>> L1 = (SortedList<MapEntry<K, V>>) this.buckets[hash1];
+		SortedList<MapEntry<K,V>> L2 = (SortedList<MapEntry<K, V>>) this.buckets[hash2];
 		
+		for (MapEntry<K, V> M : L1) {
+			if (!M.getKey().equals(key) && M.getState() != HashState.FULL) {
+				M.setState(HashState.FULL);
+				return hash1;
+			}
+		}
+		containsHash1 = true; // bucket is in use
 		
-		return 0;
+		if (containsHash1) {
+			for (MapEntry<K, V> M : L2) {
+				if (!M.getKey().equals(key) && M.getState() != HashState.FULL) {
+					M.setState(HashState.FULL);
+					return hash2;
+				}
+			}
+			containsHash2 = true; // bucket is in use
+		}
+		
+		if (!containsHash1) {
+			return hash1;
+		}
+		else if (!containsHash2) {
+			return hash2;
+		}
+		else { // linear probing
+			int i = 1;
+			int hash3;
+			while(true) {
+				hash3 = (hash1 + i) % this.buckets.length;
+				SortedList<MapEntry<K,V>> L3 = (SortedList<MapEntry<K, V>>) this.buckets[hash3];
+				i++;
+
+				for (MapEntry<K, V> M : L3) {
+					if (!M.getKey().equals(key) && M.getState() != HashState.FULL) {
+						M.setState(HashState.FULL);
+						return hash3;
+					}
+				}			
+			}
+		}
 	}
 	
 	public HashTableOA(int numBuckets) {
@@ -56,6 +104,10 @@ public class HashTableOA<K, V> implements Map<K, V> {
 		for (int i =0; i < numBuckets; ++i) {
 			this.buckets[i] = new SortedCircularDoublyLinkedList<MapEntry<K,V>>(comp);
 		}
+	}
+	
+	public HashTableOA() {
+		this(DEFAULT_BUCKETS);
 	}
 
 	@Override
@@ -74,7 +126,7 @@ public class HashTableOA<K, V> implements Map<K, V> {
 		SortedList<MapEntry<K,V>> L = (SortedList<MapEntry<K, V>>) this.buckets[targetBucket];
 		
 		for (MapEntry<K, V> M : L) {
-			if (M.getKey().equals(key)) {
+			if (M.getKey().equals(key) && M.getState() == HashState.FULL) {
 				return M.getValue();
 			}
 		}
@@ -89,7 +141,7 @@ public class HashTableOA<K, V> implements Map<K, V> {
 		}
 		int targetBucket = this.hashFunction(key);
 		SortedList<MapEntry<K,V>> L = (SortedList<MapEntry<K,V>>) this.buckets[targetBucket];
-		MapEntry<K,V> M = new MapEntry<K,V>(key, value);
+		MapEntry<K,V> M = new MapEntry<K,V>(key, value, HashState.NEVER_USED);
 		L.add(M);
 		this.currentSize++;
 
@@ -103,10 +155,10 @@ public class HashTableOA<K, V> implements Map<K, V> {
 		int i=0;
 		
 		for (MapEntry<K,V> M: L ) {
-			if (M.getKey().equals(key)) {
-				// borrar
+			if (M.getKey().equals(key) && M.getState() == HashState.FULL) {
 				V result = M.getValue();
 				L.remove(i);
+				M.setState(HashState.EMPTY);
 				this.currentSize--;
 				return result;
 			}
