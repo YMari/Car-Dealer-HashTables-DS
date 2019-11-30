@@ -182,10 +182,9 @@ public class HashTableOA<K, V> implements Map<K, V> {
 		
 		
 		int i = this.hashF1(key);
-		int j = -1;
-		
-		while (j != i) {
-			for (Object o : this.buckets) {
+		int j = 0;
+		for (Object o : this.buckets) {
+			while (j != i) {
 				List<MapEntry<K,V>> L = (List<MapEntry<K,V>>) o;
 				for (MapEntry<K,V> M : L) {
 					if (M.getState() == State.NEVER_USED) {
@@ -197,11 +196,29 @@ public class HashTableOA<K, V> implements Map<K, V> {
 					else {
 						j = (j + 1) % this.buckets.length;
 					}
-				}		
+				}
 			}
 		}
-		
 		return null;
+		
+//		while (j != i) {
+//			for (Object o : this.buckets) {
+//				List<MapEntry<K,V>> L = (List<MapEntry<K,V>>) o;
+//				for (MapEntry<K,V> M : L) {
+//					if (M.getState() == State.NEVER_USED) {
+//						return null;
+//					}
+//					if (M.getState() == State.FULL && M.getKey().equals(key)) {
+//						return M.getValue();
+//					}
+//					else {
+//						j = (j + 1) % this.buckets.length;
+//					}
+//				}		
+//			}
+//		}
+//		
+//		return null;
 		
 //		int targetBucket = this.hashFunction(key);
 //		SortedList<MapEntry<K,V>> L = (SortedList<MapEntry<K, V>>) this.buckets[targetBucket];
