@@ -1,8 +1,6 @@
 package edu.uprm.cse.datastructures.cardealer.model;
 
-import edu.uprm.cse.datastructures.cardealer.SortedCircularDoublyLinkedList;
 import edu.uprm.cse.datastructures.cardealer.util.HashTableOA;
-import edu.uprm.cse.datastructures.cardealer.util.SortedList;
 
 public class CarTable {
 

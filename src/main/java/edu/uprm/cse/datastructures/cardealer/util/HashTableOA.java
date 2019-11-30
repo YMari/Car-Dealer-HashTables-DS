@@ -1,11 +1,8 @@
 package edu.uprm.cse.datastructures.cardealer.util;
 
 import java.util.Comparator;
-import java.util.List;
 
 import edu.uprm.cse.datastructures.cardealer.SortedCircularDoublyLinkedList;
-import edu.uprm.cse.datastructures.cardealer.model.KeyComparator;
-import edu.uprm.cse.datastructures.cardealer.model.ValueComparator;
 
 public class HashTableOA<K, V> implements Map<K, V> {
 	
@@ -53,8 +50,8 @@ public class HashTableOA<K, V> implements Map<K, V> {
 	private int currentSize;
 	private Object[] buckets;
 	private static final int DEFAULT_BUCKETS = 11;
-	private Comparator<K> compK;
-	private Comparator<V> compV;
+	private Comparator<K> compK; // key comparator
+	private Comparator<V> compV; // car comparator
 	
 	private int hashF1(K key) {
 		return key.hashCode() % this.buckets.length;
@@ -79,33 +76,33 @@ public class HashTableOA<K, V> implements Map<K, V> {
 		this(DEFAULT_BUCKETS, cmpK, cmpV);
 	}
 	
-	private void reAllocate() {
+	private void reAllocate() { // reallocates the hashtable when its full
 		HashTableOA<K, V> newHash = new HashTableOA<K, V>(this.buckets.length*2, this.compK, this.compV);
 		
-		for (Object o : this.buckets) {
+		for (Object o : this.buckets) { // move all the buckets into the new hashtable
 			MapEntry<K, V> L = (MapEntry<K, V>) o;
 			if (L.getKey() != null) {
 				newHash.put(L.getKey(), L.getValue());
 			}
 		}
 		
-		this.buckets = newHash.buckets;
+		this.buckets = newHash.buckets; // update the bucket reference
 	}
 
 	@Override
-	public int size() {
+	public int size() { // returns the current size
 		return this.currentSize;
 	}
 	
 
 	@Override
-	public boolean isEmpty() {
+	public boolean isEmpty() { // tests if the hashtable is empty
 		return this.size() == 0;
 	}
 	
 
 	@Override
-	public V get(K key) {
+	public V get(K key) { // return the value of the specified key in the hashtable
 		if (key == null){
 			return null;
 		}
@@ -131,7 +128,7 @@ public class HashTableOA<K, V> implements Map<K, V> {
 	}
 
 	@Override
-	public V put(K key, V value) {
+	public V put(K key, V value) { // puts the new bucket in the hashtable, updating if it exists and returning the old value
 		if (this.currentSize == this.buckets.length) {
 			this.reAllocate();
 		}
@@ -188,7 +185,7 @@ public class HashTableOA<K, V> implements Map<K, V> {
 	}
 
 	@Override
-	public V remove(K key) {
+	public V remove(K key) { // remove the specified key and return the value, null if none is found
 		if (key == null) {
 			return null;
 		}
@@ -224,13 +221,13 @@ public class HashTableOA<K, V> implements Map<K, V> {
 	
 
 	@Override
-	public boolean contains(K key) {
+	public boolean contains(K key) { // tests if the hashtable contains the specified key
 		return this.get(key) != null;
 	}
 	
 
 	@Override
-	public SortedList<K> getKeys() {
+	public SortedList<K> getKeys() { // returns a sorted list of all the keys in the hashtable
 		SortedList<K> result = new SortedCircularDoublyLinkedList<K>(compK);
 		
 		for (Object o : this.buckets) {
@@ -243,7 +240,7 @@ public class HashTableOA<K, V> implements Map<K, V> {
 	}
 
 	@Override
-	public SortedList<V> getValues() {
+	public SortedList<V> getValues() { // returns a sorted list of all the values in the hashtable
 		SortedList<V> result = new SortedCircularDoublyLinkedList<V>(compV);
 		
 		for (Object o : this.buckets) {

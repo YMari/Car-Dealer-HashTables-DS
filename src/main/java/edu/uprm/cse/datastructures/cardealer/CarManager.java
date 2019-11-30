@@ -14,8 +14,6 @@ import javax.ws.rs.core.Response;
 import edu.uprm.cse.datastructures.cardealer.model.Car;
 import edu.uprm.cse.datastructures.cardealer.model.CarTable;
 import edu.uprm.cse.datastructures.cardealer.util.HashTableOA;
-import edu.uprm.cse.datastructures.cardealer.util.HashTableOA.MapEntry;
-import edu.uprm.cse.datastructures.cardealer.util.SortedList;
 
 @Path("/cars")
 public class CarManager {
@@ -31,7 +29,7 @@ public class CarManager {
 			return carArray;
 		}
 
-		for (int i = 0; i < carTable.size(); i++) {
+		for (int i = 0; i < carTable.size(); i++) { // move all cars in the hashtable into the array
 			carArray[i] = carTable.getValues().get(i);
 		}
 		return carArray;
@@ -56,7 +54,7 @@ public class CarManager {
 			carTable.put(car.getCarId(), car);
 			return Response.status(201).build();
 		}
-		return Response.status(404).build();
+		return Response.status(404).build(); // if the car already exists, return 404 (Error)
 
 	}
 
@@ -80,62 +78,5 @@ public class CarManager {
 		}
 		return Response.status(404).build(); // if the id does not exist, return 404 (Error)
 	}	
-	
-//	// call a new instance of the list
-////	private static final HashTableOA<Long,Car> carTable = CarTable.getInstance();
-//	private static final SortedCircularDoublyLinkedList<Car> carTable = CarTable.getInstance();
-//
-//	@GET
-//	@Produces(MediaType.APPLICATION_JSON)
-//	public Car[] getCarList(){ // returns all the elements available in the list
-//		if(carTable.isEmpty())return null;
-//		Car[] carArray = new Car[carTable.size()];
-//		for(int i=0;i<carArray.length; i++)carArray[i]=(Car)carTable.get(i);
-//		return carArray;
-//	}
-//
-//	@GET
-//	@Path("/{id}")
-//	@Produces(MediaType.APPLICATION_JSON)
-//	public Car getCar(@PathParam("id") long id){ // returns the element with the specified id value
-//		for(int i=0; i<carTable.size(); i++){
-//			if(((Car)carTable.get(i)).getCarId()==id){ return (Car)carTable.get(i);}  
-//		}  throw new NotFoundException();
-//	}
-//
-//	@POST
-//	@Path("/add")
-//	@Produces(MediaType.APPLICATION_JSON)
-//	public Response addCar(Car car){ // adds a new element to the list
-//		carTable.add(car);
-//		return Response.status(201).build();
-//	}
-//
-//	@PUT
-//	@Path("/{id}/update")
-//	@Produces(MediaType.APPLICATION_JSON)
-//	public Response updateCar(Car car){ // updates an existing element with the specified id
-//		for(int i=0; i<carTable.size(); i++){
-//			if(((Car)carTable.get(i)).getCarId()==car.getCarId()){ // tests for same element id
-//				carTable.remove(i);
-//				carTable.add(car);
-//				return Response.status(Response.Status.OK).build();
-//			}
-//		}
-//		return Response.status(404).build(); // if the id does not exist, return 404 (Error)
-//	}
-//
-//	@DELETE
-//	@Path("/{id}/delete")
-//	public Response deleteCar(@PathParam("id") long id){ // deletes an existing element with the specified id
-//		for(int i=0; i<carTable.size(); i++){
-//			if(id==((Car)carTable.get(i)).getCarId()){
-//				carTable.remove(i);
-//				return Response.status(Response.Status.OK).build();
-//			}
-//		}
-//		return Response.status(404).build(); // if the id does not exist, return 404 (Error)
-//
-//	}
 	
 }
