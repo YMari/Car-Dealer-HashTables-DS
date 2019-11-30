@@ -126,7 +126,7 @@ public class HashTableOA<K, V> implements Map<K, V> {
 		this(DEFAULT_BUCKETS);
 	}
 	
-	private void resizing() {
+	private void reAllocate() {
 		int newSize = nextPrime(this.size()*2);
 		this.buckets = new Object[newSize];
 		
@@ -173,6 +173,28 @@ public class HashTableOA<K, V> implements Map<K, V> {
 
 	@Override
 	public V get(K key) {
+		int target = this.hashF1(key);
+		
+		SortedList<MapEntry<K,V>> L = (SortedList<MapEntry<K, V>>) this.buckets[target];
+		if (!((MapEntry<K, V>) L).getKey().equals(key)) {
+			target = this.hashF2(key);
+			L = (SortedList<MapEntry<K, V>>) this.buckets[target];
+		}
+		
+		if (!((MapEntry<K, V>) L).getKey().equals(key)) {
+			for (int i = target + 1; i < this.buckets.length; i++) {
+				if (this.buckets[(i+target) % this.buckets.length] == null) {
+					i = target;
+					break;
+				}
+			}
+		}
+		
+		MapEntry<K, V> M = (MapEntry<K, V>) this.buckets[target];
+		return (M != null ? M.getValue() : null);	
+		
+		
+		
 //		int targetBucket = this.hashF1(key);
 //		SortedList<MapEntry<K,V>> L = (SortedList<MapEntry<K, V>>) this.buckets[targetBucket];
 //		if (((MapEntry<K, V>) L).getKey().equals(key)) {
@@ -181,26 +203,28 @@ public class HashTableOA<K, V> implements Map<K, V> {
 //		return null;
 		
 		
-		int i = this.hashF1(key);
-		int j = 0;
-		for (Object o : this.buckets) {
-			while (j != i) {
-				List<MapEntry<K,V>> L = (List<MapEntry<K,V>>) o;
-				for (MapEntry<K,V> M : L) {
-					if (M.getState() == State.NEVER_USED) {
-						return null;
-					}
-					if (M.getState() == State.FULL && M.getKey().equals(key)) {
-						return M.getValue();
-					}
-					else {
-						j = (j + 1) % this.buckets.length;
-					}
-				}
-			}
-		}
-		return null;
+//		int i = this.hashF1(key);
+//		int j = 0;
+//		for (Object o : this.buckets) {
+//			while (j != i) {
+//				List<MapEntry<K,V>> L = (List<MapEntry<K,V>>) o;
+//				for (MapEntry<K,V> M : L) {
+//					if (M.getState() == State.NEVER_USED) {
+//						return null;
+//					}
+//					if (M.getState() == State.FULL && M.getKey().equals(key)) {
+//						return M.getValue();
+//					}
+//					else {
+//						j = (j + 1) % this.buckets.length;
+//					}
+//				}
+//			}
+//		}
+//		return null;
 		
+//		int i = this.hashF1(key);
+//		int j = 0;
 //		while (j != i) {
 //			for (Object o : this.buckets) {
 //				List<MapEntry<K,V>> L = (List<MapEntry<K,V>>) o;
@@ -220,11 +244,11 @@ public class HashTableOA<K, V> implements Map<K, V> {
 //		
 //		return null;
 		
-//		int targetBucket = this.hashFunction(key);
+//		int targetBucket = this.hashF1(key);
 //		SortedList<MapEntry<K,V>> L = (SortedList<MapEntry<K, V>>) this.buckets[targetBucket];
 //		
 //		for (MapEntry<K, V> M : L) {
-////			if (M.getKey().equals(key) && M.getState() == HashState.FULL) {
+////			if (M.getKey().equals(key) && M.getState() == State.FULL) {
 //			if (M.getKey().equals(key)) {
 //				return M.getValue();
 //			}
