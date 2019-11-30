@@ -235,11 +235,11 @@ public class SortedCircularDoublyLinkedList<E> implements SortedList<E> {
 		}
 		@Override
 		public boolean hasNext() {
-			return nextNode != null;
+			return nextNode != header;
 		}
 		
 		public boolean hasPrevious() {
-			return previousNode != null;
+			return previousNode != header;
 		}
 
 		@Override

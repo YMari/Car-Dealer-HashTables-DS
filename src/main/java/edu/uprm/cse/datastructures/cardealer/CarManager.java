@@ -12,7 +12,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import edu.uprm.cse.datastructures.cardealer.model.Car;
-import edu.uprm.cse.datastructures.cardealer.model.CarComparator;
 import edu.uprm.cse.datastructures.cardealer.model.CarTable;
 import edu.uprm.cse.datastructures.cardealer.util.HashTableOA;
 import edu.uprm.cse.datastructures.cardealer.util.HashTableOA.MapEntry;
@@ -22,19 +21,18 @@ import edu.uprm.cse.datastructures.cardealer.util.SortedList;
 public class CarManager {
 
 	// call a new instance of the list
-	private static final HashTableOA<Long,Car> carTable = CarTable.getInstance();
+	private static HashTableOA<Long,Car> carTable = CarTable.getInstance();
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Car[] getCarList(){ // returns all the elements available in the list
-		if (carTable.isEmpty()) {
-			return null;
-		}
 		Car[] carArray = new Car[carTable.size()];
-		int i = 0;
-		for (Car M : (SortedList<Car>) carTable) {
-			carArray[i] = M;
-			i++;
+		if (carTable.isEmpty()) {
+			return carArray;
+		}
+
+		for (int i = 0; i < carTable.size(); i++) {
+			carArray[i] = carTable.getValues().get(i);
 		}
 		return carArray;
 	}
@@ -53,8 +51,13 @@ public class CarManager {
 	@Path("/add")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response addCar(Car car){ // adds a new element to the list
-		carTable.put(car.getCarId(), car);
-		return Response.status(201).build();
+		carTable = CarTable.getInstance();
+		if (!carTable.contains(car.getCarId())) {
+			carTable.put(car.getCarId(), car);
+			return Response.status(201).build();
+		}
+		return Response.status(404).build();
+
 	}
 
 	@PUT
@@ -62,7 +65,6 @@ public class CarManager {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response updateCar(Car car){ // updates an existing element with the specified id
 		if (carTable.contains(car.getCarId())) {
-//			carTable.remove(car.getCarId());
 			carTable.put(car.getCarId(), car);
 			return Response.status(Response.Status.OK).build();
 		}

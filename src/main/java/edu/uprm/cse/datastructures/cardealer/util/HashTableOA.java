@@ -4,6 +4,8 @@ import java.util.Comparator;
 import java.util.List;
 
 import edu.uprm.cse.datastructures.cardealer.SortedCircularDoublyLinkedList;
+import edu.uprm.cse.datastructures.cardealer.model.KeyComparator;
+import edu.uprm.cse.datastructures.cardealer.model.ValueComparator;
 
 public class HashTableOA<K, V> implements Map<K, V> {
 	
@@ -51,7 +53,8 @@ public class HashTableOA<K, V> implements Map<K, V> {
 	private int currentSize;
 	private Object[] buckets;
 	private static final int DEFAULT_BUCKETS = 11;
-	private Comparator<MapEntry<K, V>> comp;
+	private Comparator<K> compK;
+	private Comparator<V> compV;
 	
 	private int hashF1(K key) {
 		return key.hashCode() % this.buckets.length;
@@ -61,72 +64,33 @@ public class HashTableOA<K, V> implements Map<K, V> {
 		return DEFAULT_BUCKETS - (key.hashCode() % DEFAULT_BUCKETS);
 	}
 	
-	public HashTableOA(int initialCapacity) {
+	public HashTableOA(int initialCapacity, Comparator<K> cmpK, Comparator<V> cmpV) {
 		this.currentSize = 0;
+		this.compK = cmpK;
+		this.compV = cmpV;
 		this.buckets = new Object[initialCapacity];
 		for (int i =0; i < initialCapacity; ++i) {
 			this.buckets[i] = new MapEntry<>();
-//			this.buckets[i] = new SortedCircularDoublyLinkedList<MapEntry<K,V>>(comp);
 		}
+		
 	}
 	
-	public HashTableOA() {
-		this(DEFAULT_BUCKETS);
+	public HashTableOA(Comparator<K> cmpK, Comparator<V> cmpV) {
+		this(DEFAULT_BUCKETS, cmpK, cmpV);
 	}
 	
 	private void reAllocate() {
-		int newSize = nextPrime(this.size()*2);
-		Object[] newHashTable = new Object[newSize];
-		
-		for (int i =0; i < newSize; ++i) {
-			newHashTable[i] = new MapEntry<>();
-		}
+		HashTableOA<K, V> newHash = new HashTableOA<K, V>(this.buckets.length*2, this.compK, this.compV);
 		
 		for (Object o : this.buckets) {
-			List<MapEntry<K,V>> L = (List<MapEntry<K,V>>) o;
-			for (MapEntry<K,V> M : L) {
-				K key = M.getKey();
-				int target = this.hashF1(key);
-				SortedList<MapEntry<K,V>> B = (SortedList<MapEntry<K, V>>) this.buckets[target];
-				
-				if (!((MapEntry<K, V>) B).getKey().equals(key)) {
-					target = this.hashF2(key); // second hash
-					B = (SortedList<MapEntry<K, V>>) this.buckets[target];
-				}
-				
-				if (!((MapEntry<K, V>) B).getKey().equals(key)) { // linear probing
-					for (int i = 1; i < this.buckets.length; i++) {
-						if (this.buckets[(target + i) % this.buckets.length] == null) {
-							i = target;
-							break;
-						}
-					}
-				}
-				
-				this.buckets[target] = new MapEntry<K, V>(M.getKey(), M.getValue(), State.FULL);
+			MapEntry<K, V> L = (MapEntry<K, V>) o;
+			if (L.getKey() != null) {
+				newHash.put(L.getKey(), L.getValue());
 			}
 		}
 		
-		this.buckets = newHashTable;
+		this.buckets = newHash.buckets;
 	}
-	
-	private int nextPrime(int n) {
-		if (!isPrime(n)) {
-			n = nextPrime(++n);
-		}
-		return n;
-	}
-	
-	
-	private boolean isPrime(int n) {
-		for (int i = 2; i <= Math.sqrt(n); i++) {
-			if (n % i == 0) {
-				return false;
-			}
-		}
-		return true;
-	}
-	
 
 	@Override
 	public int size() {
@@ -142,165 +106,120 @@ public class HashTableOA<K, V> implements Map<K, V> {
 
 	@Override
 	public V get(K key) {
-		int target = this.hashF1(key); // first hash
-		SortedList<MapEntry<K,V>> L = (SortedList<MapEntry<K, V>>) this.buckets[target];
-		
-		if (!((MapEntry<K, V>) L).getKey().equals(key)) {
-			target = this.hashF2(key); // second hash
-			L = (SortedList<MapEntry<K, V>>) this.buckets[target];
+		if (key == null){
+			return null;
 		}
 		
-		if (!((MapEntry<K, V>) L).getKey().equals(key)) { // linear probing
+		int target = this.hashF1(key); // first hash
+		MapEntry<K,V> L = (MapEntry<K, V>) this.buckets[target];
+		
+		if (((MapEntry<K, V>) L).getKey() != null && !((MapEntry<K, V>) L).getKey().equals(key)) {
+			target = this.hashF2(key); // second hash
+			L = (MapEntry<K, V>) this.buckets[target];
+		}
+		
+		if (((MapEntry<K, V>) L).getKey() != null && !((MapEntry<K, V>) L).getKey().equals(key)) { // linear probing
 			for (int i = 1; i < this.buckets.length; i++) {
-				if (this.buckets[(target + i) % this.buckets.length] == null) {
-					i = target;
-					break;
+				L = (MapEntry<K, V>) this.buckets[(target + i) % this.buckets.length];
+				if (L.getKey() != null && L.getKey() == key) {
+					return L.getValue();
 				}
 			}
 		}
 		
-		MapEntry<K, V> M = (MapEntry<K, V>) this.buckets[target];
-		return (M != null ? M.getValue() : null);	
-		
-		
-		
-//		int targetBucket = this.hashF1(key);
-//		SortedList<MapEntry<K,V>> L = (SortedList<MapEntry<K, V>>) this.buckets[targetBucket];
-//		if (((MapEntry<K, V>) L).getKey().equals(key)) {
-//			return ((MapEntry<K, V>) L).getValue();
-//		}
-//		return null;
-		
-		
-//		int i = this.hashF1(key);
-//		int j = 0;
-//		for (Object o : this.buckets) {
-//			while (j != i) {
-//				List<MapEntry<K,V>> L = (List<MapEntry<K,V>>) o;
-//				for (MapEntry<K,V> M : L) {
-//					if (M.getState() == State.NEVER_USED) {
-//						return null;
-//					}
-//					if (M.getState() == State.FULL && M.getKey().equals(key)) {
-//						return M.getValue();
-//					}
-//					else {
-//						j = (j + 1) % this.buckets.length;
-//					}
-//				}
-//			}
-//		}
-//		return null;
-		
-//		int i = this.hashF1(key);
-//		int j = 0;
-//		while (j != i) {
-//			for (Object o : this.buckets) {
-//				List<MapEntry<K,V>> L = (List<MapEntry<K,V>>) o;
-//				for (MapEntry<K,V> M : L) {
-//					if (M.getState() == State.NEVER_USED) {
-//						return null;
-//					}
-//					if (M.getState() == State.FULL && M.getKey().equals(key)) {
-//						return M.getValue();
-//					}
-//					else {
-//						j = (j + 1) % this.buckets.length;
-//					}
-//				}		
-//			}
-//		}
-//		
-//		return null;
-		
-//		int targetBucket = this.hashF1(key);
-//		SortedList<MapEntry<K,V>> L = (SortedList<MapEntry<K, V>>) this.buckets[targetBucket];
-//		
-//		for (MapEntry<K, V> M : L) {
-////			if (M.getKey().equals(key) && M.getState() == State.FULL) {
-//			if (M.getKey().equals(key)) {
-//				return M.getValue();
-//			}
-//		}
-//		return null;
+		return L.getValue();
 	}
 
 	@Override
 	public V put(K key, V value) {
-		V oldValue = this.get(key);
-		
-		if (oldValue != null) {
-			this.remove(key);
-		}
-		else if (this.currentSize == this.buckets.length) {
+		if (this.currentSize == this.buckets.length) {
 			this.reAllocate();
 		}
 		
-		int target = this.hashF1(key);
-		SortedList<MapEntry<K,V>> L = (SortedList<MapEntry<K, V>>) this.buckets[target];
+		V oldValue = this.get(key);
 		
-		if (!((MapEntry<K, V>) L).getKey().equals(key)) {
-			target = this.hashF2(key); // second hash
-			L = (SortedList<MapEntry<K, V>>) this.buckets[target];
-		}
-		
-		if (!((MapEntry<K, V>) L).getKey().equals(key)) { // linear probing
-			for (int i = 1; i < this.buckets.length; i++) {
-				if (this.buckets[(target + i) % this.buckets.length] == null) {
-					i = target;
-					break;
+		if (oldValue != null) {
+			int target = this.hashF1(key); // first hash
+			MapEntry<K,V> L = (MapEntry<K, V>) this.buckets[target];
+			
+			if (((MapEntry<K, V>) L).getKey() != null && !((MapEntry<K, V>) L).getKey().equals(key)) {
+				target = this.hashF2(key); // second hash
+				L = (MapEntry<K, V>) this.buckets[target];
+			}
+			
+			if (((MapEntry<K, V>) L).getKey() != null && !((MapEntry<K, V>) L).getKey().equals(key)) { // linear probing
+				for (int i = 1; i < this.buckets.length; i++) {
+					L = (MapEntry<K, V>) this.buckets[(target + i) % this.buckets.length];
+					if (L.getKey() != null && L.getKey() == key) {
+						L.setValue(value);
+						return oldValue; // return the old value
+					}
 				}
 			}
+			L.setValue(value);
+			return oldValue;
 		}
 		
-		MapEntry<K, V> M = new MapEntry<K,V>(key, value, State.FULL);
-		L.add(M);
-		this.currentSize++;
-		return oldValue;
-		
-//		int targetBucket = this.hashF1(key);
-//		SortedList<MapEntry<K,V>> L = (SortedList<MapEntry<K,V>>) this.buckets[targetBucket];
-//		MapEntry<K,V> M = new MapEntry<K,V>(key, value, State.FULL);
-//		L.add(M);
-//		this.currentSize++;
-//
-//		return oldValue;
+		else {
+			int target = this.hashF1(key); // first hash
+			MapEntry<K,V> L = (MapEntry<K, V>) this.buckets[target];
+			
+			if (((MapEntry<K, V>) L).getKey() != null && !((MapEntry<K, V>) L).getKey().equals(key)) {
+				target = this.hashF2(key); // second hash
+				L = (MapEntry<K, V>) this.buckets[target];
+			}
+			
+			if (((MapEntry<K, V>) L).getKey() != null && !((MapEntry<K, V>) L).getKey().equals(key)) { // linear probing
+				for (int i = 1; i < this.buckets.length; i++) {
+					L = (MapEntry<K, V>) this.buckets[(target + i) % this.buckets.length];
+					if (L.getState() != State.FULL) {
+						L.setKey(key);
+						L.setValue(value);
+						this.currentSize++;
+						return null; // there is no old value, so return null
+					}
+				}
+			}
+			L.setKey(key);
+			L.setValue(value);
+			this.currentSize++;
+			return null; // there is no old value, so return null
+		}
 	}
 
 	@Override
 	public V remove(K key) {
-		int target = this.hashF1(key);
-		SortedList<MapEntry<K,V>> L = (SortedList<MapEntry<K, V>>) this.buckets[target];
-		
-		if (!((MapEntry<K, V>) L).getKey().equals(key)) {
-			target = this.hashF2(key); // second hash
-			L = (SortedList<MapEntry<K, V>>) this.buckets[target];
+		if (key == null) {
+			return null;
 		}
 		
-		if (!((MapEntry<K, V>) L).getKey().equals(key)) { // linear probing
+		int target = this.hashF1(key); // first hash
+		MapEntry<K,V> L = (MapEntry<K, V>) this.buckets[target];
+		
+		if (((MapEntry<K, V>) L).getKey() != null && !((MapEntry<K, V>) L).getKey().equals(key)) {
+			target = this.hashF2(key); // second hash
+			L = (MapEntry<K, V>) this.buckets[target];
+		}
+		
+		if (((MapEntry<K, V>) L).getKey() != null && !((MapEntry<K, V>) L).getKey().equals(key)) { // linear probing
 			for (int i = 1; i < this.buckets.length; i++) {
-				if (this.buckets[(target + i) % this.buckets.length] == null) {
-					i = target;
-					break;
+				L = (MapEntry<K, V>) this.buckets[(target + i) % this.buckets.length];
+				if (L.getKey() != null && L.getKey() == key) {
+					V oldVal = L.getValue();
+					L.setKey(null);
+					L.setValue(null);
+					L.setState(State.EMPTY);
+					this.currentSize--;
+					return oldVal; // return the old value
 				}
 			}
 		}
 		
-		int i=0;
-		
-		for (MapEntry<K,V> M: L ) {
-			if (M.getKey().equals(key) && M.getState() == State.FULL) {
-				V result = M.getValue();
-				L.remove(i);
-				M.setState(State.EMPTY);
-				this.currentSize--;
-				return result;
-			}
-			else {
-				i++;
-			}
-		}
-		return null;
+		L.setKey(null);
+		L.setValue(null);
+		L.setState(State.EMPTY);
+		this.currentSize--;
+		return this.get(key); // return the old value
 	}
 	
 
@@ -312,12 +231,12 @@ public class HashTableOA<K, V> implements Map<K, V> {
 
 	@Override
 	public SortedList<K> getKeys() {
-		SortedList<K> result = (SortedList<K>) new SortedCircularDoublyLinkedList<>(comp);
+		SortedList<K> result = new SortedCircularDoublyLinkedList<K>(compK);
 		
 		for (Object o : this.buckets) {
-			List<MapEntry<K,V>> L = (List<MapEntry<K,V>>) o;
-			for (MapEntry<K,V> M : L) {
-				result.add(M.getKey());
+			MapEntry<K,V> L = (MapEntry<K,V>) o;
+			if (L.getKey() != null) {
+				result.add(L.getKey());
 			}
 		}
 		return result;
@@ -325,12 +244,12 @@ public class HashTableOA<K, V> implements Map<K, V> {
 
 	@Override
 	public SortedList<V> getValues() {
-		SortedList<V> result = (SortedList<V>) new SortedCircularDoublyLinkedList<>(comp);
+		SortedList<V> result = new SortedCircularDoublyLinkedList<V>(compV);
 		
 		for (Object o : this.buckets) {
-			List<MapEntry<K,V>> L = (List<MapEntry<K,V>>) o;
-			for (MapEntry<K,V> M : L) {
-				result.add(M.getValue());
+			MapEntry<K,V> L = (MapEntry<K,V>) o;
+			if (L.getValue() != null) {
+				result.add(L.getValue());
 			}
 		}
 		return result;
