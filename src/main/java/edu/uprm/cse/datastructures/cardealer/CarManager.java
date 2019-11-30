@@ -62,7 +62,7 @@ public class CarManager {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response updateCar(Car car){ // updates an existing element with the specified id
 		if (carTable.contains(car.getCarId())) {
-			carTable.remove(car.getCarId());
+//			carTable.remove(car.getCarId());
 			carTable.put(car.getCarId(), car);
 			return Response.status(Response.Status.OK).build();
 		}
@@ -135,4 +135,5 @@ public class CarManager {
 //		return Response.status(404).build(); // if the id does not exist, return 404 (Error)
 //
 //	}
+	
 }
