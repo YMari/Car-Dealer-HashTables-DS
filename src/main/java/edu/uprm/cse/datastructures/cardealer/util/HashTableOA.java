@@ -58,7 +58,7 @@ public class HashTableOA<K, V> implements Map<K, V> {
 	}
 	
 	private int hashF2(K key) {
-		return DEFAULT_BUCKETS - (key.hashCode() % DEFAULT_BUCKETS);
+		return 7 - (key.hashCode() % 7);
 	}
 	
 	public HashTableOA(int initialCapacity, Comparator<K> cmpK, Comparator<V> cmpV) {
